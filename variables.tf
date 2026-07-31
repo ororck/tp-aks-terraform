@@ -94,3 +94,8 @@ variable "storage_replication" {
   type        = string
   default     = "LRS"
 }
+
+variable "ci_principal_id" {
+  description = "ObjectId du service principal utilisé par GitHub Actions (OIDC). Distinct de l'appId, qui sert à l'authentification."
+  type        = string
+}
