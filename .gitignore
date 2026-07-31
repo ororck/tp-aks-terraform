@@ -1,0 +1,13 @@
+# State (distant, jamais local en clair)
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Variables sensibles
+terraform.tfvars
+*.auto.tfvars
+
+# Crash logs
+crash.log
+crash.*.log

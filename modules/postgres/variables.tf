@@ -1,0 +1,11 @@
+variable "owner" { type = string }
+variable "location" { type = string }
+variable "resource_group_name" { type = string }
+variable "postgres_version" { type = string }
+variable "postgres_sku" { type = string }
+variable "postgres_storage_mb" { type = number }
+variable "admin_login" { type = string }
+variable "database_name" { type = string }
+variable "cluster_egress_ip" { type = string }
+variable "key_vault_id" { type = string }
+variable "tags" { type = map(string) }
