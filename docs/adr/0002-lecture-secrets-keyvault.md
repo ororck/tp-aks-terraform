@@ -1,8 +1,5 @@
 # ADR 0002 - Lecture des secrets Key Vault par le backend
 
-## Statut
-Accepté
-
 ## Contexte
 Les identifiants PostgreSQL et la clé Redis sont stockés dans Key Vault. Le
 backend Spring Boot doit les consommer à l'exécution sans qu'ils soient écrits
