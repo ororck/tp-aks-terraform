@@ -1,10 +1,7 @@
 name: terraform
 
 on:
-  # Contrôles qualité et sécurité avant merge
-  pull_request:
-    branches: [main]
-  # Déploiement de l'infra une fois le code sur main
+  # Tout se joue sur main : vérification puis déploiement dans le même run.
   push:
     branches: [main]
   # Relance manuelle du déploiement sans nouveau commit
@@ -16,9 +13,8 @@ on:
         type: string
 
 permissions:
-  id-token: write      # OIDC vers Azure
+  id-token: write   # OIDC vers Azure
   contents: read
-  pull-requests: write # commentaire de plan
 
 env:
   ARM_USE_OIDC: "true"
@@ -27,16 +23,11 @@ env:
   ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
 jobs:
-  # --- Contrôles qualité + sécurité : uniquement sur PR ----------------------
-  # Le code arrivant sur main est déjà passé par ici, inutile de rescanner.
+  # --- Contrôles qualité + sécurité ------------------------------------------
   checks:
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          # gitleaks compare le commit à son parent : il lui faut l'historique.
-          fetch-depth: 0
 
       - uses: hashicorp/setup-terraform@v3
 
@@ -59,10 +50,9 @@ jobs:
           tar -xzf gitleaks.tar.gz gitleaks
           ./gitleaks dir . --redact -v
 
-  # --- Plan sur PR -----------------------------------------------------------
+  # --- Plan : lisible dans les logs avant l'apply -----------------------------
   plan:
     needs: checks
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -77,10 +67,9 @@ jobs:
         env:
           TF_VAR_ci_principal_id: ${{ secrets.TF_VAR_ci_principal_id }}
 
-  # --- Apply : sur main, ou relance manuelle ---------------------------------
-  # Pas de "needs: checks" : sur main le job checks n'existe pas.
+  # --- Apply : seulement si checks et plan sont passés ------------------------
   apply:
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    needs: [checks, plan]
     runs-on: ubuntu-latest
     environment: nonprod
     steps:
