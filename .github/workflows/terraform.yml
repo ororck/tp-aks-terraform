@@ -63,7 +63,9 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       - uses: hashicorp/setup-terraform@v3
       - run: terraform init
-      - run: terraform plan -no-color
+      - run: terraform plan
+        env:
+          TF_VAR_ci_principal_id: ${{ secrets.TF_VAR_ci_principal_id }}
 
   # --- Apply : déclenchable manuellement ou sur main -------------------------
   apply:
@@ -81,3 +83,5 @@ jobs:
       - uses: hashicorp/setup-terraform@v3
       - run: terraform init
       - run: terraform apply -auto-approve
+        env:
+          TF_VAR_ci_principal_id: ${{ secrets.TF_VAR_ci_principal_id }}
