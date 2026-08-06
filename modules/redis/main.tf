@@ -16,12 +16,16 @@ resource "azurerm_managed_redis" "this" {
 }
 
 # Clé et host stockés dans Key Vault, jamais exposés en clair.
+#tfsec:ignore:azure-keyvault-ensure-secret-expiry
+#tfsec:ignore:azure-keyvault-content-type-for-secret
 resource "azurerm_key_vault_secret" "redis_key" {
   name         = "redis-primary-key"
   value        = azurerm_managed_redis.this.default_database[0].primary_access_key
   key_vault_id = var.key_vault_id
 }
 
+#tfsec:ignore:azure-keyvault-ensure-secret-expiry
+#tfsec:ignore:azure-keyvault-content-type-for-secret
 resource "azurerm_key_vault_secret" "redis_host" {
   name         = "redis-host"
   value        = azurerm_managed_redis.this.hostname

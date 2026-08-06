@@ -7,6 +7,10 @@ data "http" "deployer_ip" {
 
 # Key Vault en mode RBAC : les accès aux secrets se gèrent par rôles Azure
 # (Key Vault Secrets Officer / User), pas par access policies.
+
+# Non-prod assumé : la purge protection empêcherait de recréer le vault sous le
+# même nom après un destroy.
+#tfsec:ignore:azure-keyvault-no-purge
 resource "azurerm_key_vault" "this" {
   name                = "kv-${var.owner}"
   location            = var.location
