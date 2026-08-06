@@ -6,11 +6,6 @@ on:
     branches: [main]
   # Relance manuelle du déploiement sans nouveau commit
   workflow_dispatch:
-    inputs:
-      environment:
-        description: "Environnement cible"
-        default: "nonprod"
-        type: string
 
 permissions:
   id-token: write   # OIDC vers Azure
@@ -71,7 +66,6 @@ jobs:
   apply:
     needs: [checks, plan]
     runs-on: ubuntu-latest
-    environment: nonprod
     steps:
       - uses: actions/checkout@v4
       - uses: azure/login@v2
