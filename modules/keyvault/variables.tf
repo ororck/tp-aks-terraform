@@ -5,3 +5,4 @@ variable "tenant_id" { type = string }
 variable "cluster_egress_ip" { type = string }
 variable "deployer_principal_id" { type = string }
 variable "tags" { type = map(string) }
+variable "ci_principal_id" { type = string }

@@ -38,3 +38,12 @@ resource "azurerm_storage_container" "app" {
   storage_account_id    = azurerm_storage_account.this.id
   container_access_type = "private"
 }
+
+# La CI génère un User Delegation SAS à chaque déploiement (profil aks du
+# backend). L'opération exige un rôle data-plane sur le storage, le
+# Contributor du plan de contrôle ne suffit pas.
+resource "azurerm_role_assignment" "ci_blob" {
+  scope                = azurerm_storage_account.this.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = var.ci_principal_id
+}

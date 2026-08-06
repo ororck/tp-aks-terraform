@@ -40,3 +40,11 @@ resource "azurerm_role_assignment" "tf_officer" {
   role_definition_name = "Key Vault Secrets Officer"
   principal_id         = var.deployer_principal_id
 }
+
+# Le service principal de la CI lit les secrets pour construire le Secret Kubernetes consommé par le backend (ADR 0002).
+# Lecture seule : l'écriture reste réservée à l'exécutant Terraform.
+resource "azurerm_role_assignment" "ci_reader" {
+  scope                = azurerm_key_vault.this.id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = var.ci_principal_id
+}

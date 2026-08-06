@@ -27,3 +27,8 @@ output "namespace" {
   description = "Namespace Kubernetes dédié."
   value       = module.kubernetes.namespace
 }
+
+output "acr_login_server" {
+  description = "Serveur de connexion de l'ACR (la CI le retrouve aussi par tags)."
+  value       = module.acr.login_server
+}

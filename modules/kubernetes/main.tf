@@ -45,7 +45,7 @@ resource "kubernetes_network_policy" "ingress_to_frontend" {
         }
       }
       ports {
-        port     = "80"
+        port     = "8080"
         protocol = "TCP"
       }
     }

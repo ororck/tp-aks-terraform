@@ -1,8 +1,5 @@
 # ADR 0001 - Isolation réseau des services managés
 
-## Statut
-Accepté
-
 ## Contexte
 La section 6 exige que PostgreSQL, Storage et Key Vault soient accessibles
 uniquement depuis le backend. Le cluster AKS est mutualisé : son VNet

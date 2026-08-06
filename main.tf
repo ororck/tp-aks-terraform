@@ -13,6 +13,7 @@ module "keyvault" {
   tenant_id             = data.azurerm_client_config.current.tenant_id
   cluster_egress_ip     = local.cluster_egress_ip
   deployer_principal_id = data.azurerm_client_config.current.object_id
+  ci_principal_id       = var.ci_principal_id
   tags                  = local.common_tags
 }
 
@@ -52,6 +53,7 @@ module "storage" {
   account_tier        = var.storage_account_tier
   replication         = var.storage_replication
   cluster_egress_ip   = local.cluster_egress_ip
+  ci_principal_id     = var.ci_principal_id
   tags                = local.common_tags
 }
 
@@ -60,4 +62,19 @@ module "kubernetes" {
 
   namespace = var.namespace
   owner     = var.owner
+}
+
+module "acr" {
+  source = "./modules/acr"
+
+  owner_slug          = local.owner_slug
+  location            = var.location
+  resource_group_name = data.azurerm_resource_group.dedicated.name
+
+  # Identité kubelet du cluster mutualisé : c'est elle qui tire les images.
+  # Lue seulement, le cluster n'est pas modifié.
+  kubelet_principal_id = data.azurerm_kubernetes_cluster.shared.kubelet_identity[0].object_id
+
+  ci_principal_id = var.ci_principal_id
+  tags            = local.common_tags
 }
