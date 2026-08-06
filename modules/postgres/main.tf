@@ -63,19 +63,24 @@ resource "azurerm_postgresql_flexible_server_database" "app" {
 }
 
 # --- Secrets écrits dans Key Vault (rien en clair ailleurs) ------------------
-
+# Pas d'expiration : aucun mécanisme de rotation, une date d'expiration
+# casserait l'application. content_type non renseigné, secrets à usage unique.
+#tfsec:ignore:azure-keyvault-ensure-secret-expiry
+#tfsec:ignore:azure-keyvault-content-type-for-secret
 resource "azurerm_key_vault_secret" "host" {
   name         = "postgres-host"
   value        = azurerm_postgresql_flexible_server.this.fqdn
   key_vault_id = var.key_vault_id
 }
-
+#tfsec:ignore:azure-keyvault-ensure-secret-expiry
+#tfsec:ignore:azure-keyvault-content-type-for-secret
 resource "azurerm_key_vault_secret" "user" {
   name         = "postgres-user"
   value        = var.admin_login
   key_vault_id = var.key_vault_id
 }
-
+#tfsec:ignore:azure-keyvault-ensure-secret-expiry
+#tfsec:ignore:azure-keyvault-content-type-for-secret
 resource "azurerm_key_vault_secret" "password" {
   name         = "postgres-password"
   value        = random_password.admin.result

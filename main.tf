@@ -30,6 +30,7 @@ module "postgres" {
   database_name       = var.postgres_database_name
   cluster_egress_ip   = local.cluster_egress_ip
   key_vault_id        = module.keyvault.id
+  depends_on          = [module.keyvault]
   tags                = local.common_tags
 }
 
@@ -41,6 +42,7 @@ module "redis" {
   resource_group_name = data.azurerm_resource_group.dedicated.name
   redis_sku           = var.redis_sku
   key_vault_id        = module.keyvault.id
+  depends_on          = [module.keyvault]
   tags                = local.common_tags
 }
 
