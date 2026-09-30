@@ -12,6 +12,8 @@ permissions:
   contents: read
 
 env:
+  RG_NAME: msaidiRG
+  OWNER_TAG: mohamed-saidi
   ARM_USE_OIDC: "true"
   ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
   ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
@@ -35,8 +37,37 @@ jobs:
       - name: Validate
         run: terraform validate
 
-      - name: Scan IaC (tfsec)
-        uses: aquasecurity/tfsec-action@v1.0.3
+      # tfsec n'est plus maintenu, Trivy a repris ses checks (mêmes AVD-...).
+      # HIGH et CRITICAL bloquent (exit 1). MEDIUM est informatif : ce sont
+      # des compromis non-prod assumés (accès public PostgreSQL filtré par
+      # firewall, ADR 0001), listés dans le résumé du job sans bloquer.
+      - name: Scan IaC bloquant (Trivy, HIGH et CRITICAL)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: config
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+
+      - name: Scan IaC informatif (Trivy, MEDIUM)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: config
+          scan-ref: .
+          severity: MEDIUM
+          exit-code: "0"
+          format: table
+          output: trivy-medium.txt
+
+      - name: Résumé Trivy
+        if: always()
+        run: |
+          {
+            echo '### Trivy MEDIUM (informatif)'
+            echo '```'
+            cat trivy-medium.txt 2>/dev/null || echo 'aucun résultat'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Détection de secrets (gitleaks)
         run: |
@@ -65,10 +96,26 @@ jobs:
           curl -sSLO https://github.com/Azure/kubelogin/releases/latest/download/kubelogin-linux-amd64.zip
           unzip -q kubelogin-linux-amd64.zip
           sudo mv bin/linux_amd64/kubelogin /usr/local/bin/
+      # Le Key Vault et le storage sont fermés par défaut : on ouvre le firewall
+      # à l'IP du runner avant terraform init (ADR 0004).
+      - name: Ouvrir les firewalls (JIT)
+        uses: ./.github/actions/jit-firewall
+        with:
+          mode: open
+          resource-group: ${{ env.RG_NAME }}
+          owner: ${{ env.OWNER_TAG }}
       - run: terraform init
       - run: terraform plan
         env:
           TF_VAR_ci_principal_id: ${{ secrets.TF_VAR_ci_principal_id }}
+
+      - name: Fermer les firewalls
+        if: always()
+        uses: ./.github/actions/jit-firewall
+        with:
+          mode: close
+          resource-group: ${{ env.RG_NAME }}
+          owner: ${{ env.OWNER_TAG }}
 
   # --- Apply : seulement si checks et plan sont passés ------------------------
   apply:
@@ -90,7 +137,23 @@ jobs:
           curl -sSLO https://github.com/Azure/kubelogin/releases/latest/download/kubelogin-linux-amd64.zip
           unzip -q kubelogin-linux-amd64.zip
           sudo mv bin/linux_amd64/kubelogin /usr/local/bin/
+      # Le Key Vault et le storage sont fermés par défaut : on ouvre le firewall
+      # à l'IP du runner avant terraform init (ADR 0004).
+      - name: Ouvrir les firewalls (JIT)
+        uses: ./.github/actions/jit-firewall
+        with:
+          mode: open
+          resource-group: ${{ env.RG_NAME }}
+          owner: ${{ env.OWNER_TAG }}
       - run: terraform init
       - run: terraform apply -auto-approve
         env:
           TF_VAR_ci_principal_id: ${{ secrets.TF_VAR_ci_principal_id }}
+
+      - name: Fermer les firewalls
+        if: always()
+        uses: ./.github/actions/jit-firewall
+        with:
+          mode: close
+          resource-group: ${{ env.RG_NAME }}
+          owner: ${{ env.OWNER_TAG }}
