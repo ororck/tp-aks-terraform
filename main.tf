@@ -14,6 +14,7 @@ module "keyvault" {
   cluster_egress_ip     = local.cluster_egress_ip
   deployer_principal_id = data.azurerm_client_config.current.object_id
   ci_principal_id       = var.ci_principal_id
+  deployer_ip           = var.deployer_ip
   tags                  = local.common_tags
 }
 
@@ -56,6 +57,7 @@ module "storage" {
   replication         = var.storage_replication
   cluster_egress_ip   = local.cluster_egress_ip
   ci_principal_id     = var.ci_principal_id
+  deployer_ip         = var.deployer_ip
   tags                = local.common_tags
 }
 
