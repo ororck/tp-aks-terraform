@@ -1,10 +1,10 @@
 name: terraform
 
 on:
-  # Tout se joue sur main : vérification puis déploiement dans le même run.
-  push:
-    branches: [main]
-  # Relance manuelle du déploiement sans nouveau commit
+  # Les contrôles tournent sur chaque PR : aucun login Azure, aucun coût.
+  pull_request:
+  # Le déploiement (plan puis apply) est déclenché à la main uniquement,
+  # jamais par un merge sur main.
   workflow_dispatch:
 
 permissions:
@@ -47,6 +47,7 @@ jobs:
 
   # --- Plan : lisible dans les logs avant l'apply -----------------------------
   plan:
+    if: github.event_name == 'workflow_dispatch'
     needs: checks
     runs-on: ubuntu-latest
     steps:
@@ -71,6 +72,7 @@ jobs:
 
   # --- Apply : seulement si checks et plan sont passés ------------------------
   apply:
+    if: github.event_name == 'workflow_dispatch'
     needs: [checks, plan]
     runs-on: ubuntu-latest
     steps:
