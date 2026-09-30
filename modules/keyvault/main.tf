@@ -1,16 +1,9 @@
-# Récupère l'IP publique de l'exécutant Terraform (ta machine en local, le
-# runner GitHub en CI). Elle est autorisée sur le firewall du vault le temps
-# d'écrire les secrets, sans jamais ouvrir le vault au public.
-data "http" "deployer_ip" {
-  url = "https://api.ipify.org"
-}
-
 # Key Vault en mode RBAC : les accès aux secrets se gèrent par rôles Azure
 # (Key Vault Secrets Officer / User), pas par access policies.
 
 # Non-prod assumé : la purge protection empêcherait de recréer le vault sous le
 # même nom après un destroy.
-#tfsec:ignore:azure-keyvault-no-purge
+#trivy:ignore:AVD-AZU-0016
 resource "azurerm_key_vault" "this" {
   name                = "kv-${var.owner}"
   location            = var.location
@@ -23,16 +16,13 @@ resource "azurerm_key_vault" "this" {
   soft_delete_retention_days = 7
 
   # accessible uniquement depuis le backend (IP de sortie du cluster).
-  # L'IP de l'exécutant est ajoutée pour permettre à Terraform
-  # d'écrire les secrets (RBAC seul ne suffit pas : le pare-feu réseau bloque
+  # L'IP de l'exécutant (var.deployer_ip, fournie par la CI) est ajoutée
+  # pour permettre à Terraform d'écrire les secrets (RBAC seul ne suffit pas : le pare-feu réseau bloque
   # aussi les appels data-plane, y compris ceux du service principal).
   network_acls {
     default_action = "Deny"
     bypass         = "None"
-    ip_rules = [
-      var.cluster_egress_ip,
-      chomp(data.http.deployer_ip.response_body),
-    ]
+    ip_rules       = compact([var.cluster_egress_ip, var.deployer_ip])
   }
 
   tags = merge(var.tags, { component = "keyvault" })

@@ -1,10 +1,3 @@
-# IP publique de l'exécutant Terraform, autorisée le temps de créer le
-# container (sinon le firewall du storage bloque aussi l'exécutant).
-# ATTENTION : ip_rules du storage refuse une IP en /32. On passe l'IP nue.
-data "http" "deployer_ip" {
-  url = "https://api.ipify.org"
-}
-
 resource "azurerm_storage_account" "this" {
   name                = "st${var.owner_slug}"
   location            = var.location
@@ -19,14 +12,12 @@ resource "azurerm_storage_account" "this" {
 
   # Accessible uniquement depuis le backend (IP du cluster).
   # L'IP de l'exécutant est ajoutée pour créer le container. bypass est une
-  # LISTE ici (différent du Key Vault). ip_rules attend des IP nues (pas /32).
+  # LISTE ici (différent du Key Vault). ip_rules attend des IP nues (pas /32). L'IP de
+  # l'exécutant vient de var.deployer_ip, fournie par la CI.
   network_rules {
     default_action = "Deny"
     bypass         = ["AzureServices"]
-    ip_rules = [
-      var.cluster_egress_ip,
-      chomp(data.http.deployer_ip.response_body),
-    ]
+    ip_rules       = compact([var.cluster_egress_ip, var.deployer_ip])
   }
 
   tags = merge(var.tags, { component = "storage" })

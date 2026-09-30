@@ -99,3 +99,9 @@ variable "ci_principal_id" {
   description = "ObjectId du service principal utilisé par GitHub Actions (OIDC). Distinct de l'appId, qui sert à l'authentification."
   type        = string
 }
+
+variable "deployer_ip" {
+  description = "IP publique de l'exécutant, autorisée sur les firewalls Key Vault et storage. Fournie par la CI (TF_VAR_deployer_ip), vide par défaut : aucune IP éphémère n'est inscrite en dur."
+  type        = string
+  default     = ""
+}
