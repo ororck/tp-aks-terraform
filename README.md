@@ -12,7 +12,7 @@ Le cluster AKS et le resource group dédié sont **fournis** : ce Terraform les
 référence en `data` et ne gère que les ressources propres à l'environnement.
 
 > Schéma d'architecture : `docs/architecture.drawio` (source) et
-> `docs/architecture.png` (rendu).
+> `docs/architecture.svg` (rendu).
 
 ```
 Internet
@@ -54,7 +54,7 @@ protection repose uniquement sur le RBAC. Voir ADR 0003.
 ├── locals.tf           # tags communs, slug, IP egress du cluster
 ├── main.tf             # câblage des modules
 ├── outputs.tf
-├── docs/adr/           # journal des décisions d'architecture (0001 à 0004)
+├── docs/adr/           # journal des décisions d'architecture (0001 à 0007)
 ├── scripts/            # bootstrap (voir ci-dessous)
 └── modules/
     ├── keyvault/       # Key Vault RBAC + rôles Secrets Officer et CI
@@ -90,7 +90,7 @@ Terraform qui l'utilise comme backend. Les scripts de `scripts/` le
 provisionnent en amont, ainsi que l'app registration OIDC de la CI :
 
 ```bash
-./scripts/run-all.sh    # providers.sh + state-backend.sh + oidc.sh
+./scripts/run-all.sh    # providers.sh + storage-container.sh + oidc.sh
 ```
 
 Renseigner ensuite `backend.tf` avec le nom du storage account généré.
@@ -138,7 +138,10 @@ gh workflow run terraform.yml
 
 ## Décisions d'architecture
 
-- **ADR 0001** — isolation réseau des services managés
-- **ADR 0002** — lecture des secrets Key Vault par le backend
-- **ADR 0003** — registre d'images
-- **ADR 0004** — accès de la CI aux services filtrés par IP
+- **ADR 0001**: isolation réseau des services managés
+- **ADR 0002**: lecture des secrets Key Vault par le backend
+- **ADR 0003**: registre d'images
+- **ADR 0004**: accès de la CI aux services filtrés par IP
+- **ADR 0005**: découverte par tags
+- **ADR 0006**: droit cluster-scope de la CI
+- **ADR 0007**: report de la migration azurerm 5.x
