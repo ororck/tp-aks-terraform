@@ -1,4 +1,4 @@
-# ADR 0003 — Registre d'images
+# ADR 0003: Registre d'images
 
 ## Statut
 

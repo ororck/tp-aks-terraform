@@ -1,4 +1,4 @@
-# ADR 0004 — Accès de la CI aux services managés filtrés par IP
+# ADR 0004: Accès de la CI aux services managés filtrés par IP
 
 ## Contexte
 
@@ -23,6 +23,13 @@ Elle n'est donc pas soumise au firewall du plan de données, et le service
 principal de la CI peut l'effectuer avec son rôle `Contributor` sur le
 resource group.
 
+Le job Terraform applique la même logique : une action composite locale
+(`.github/actions/jit-firewall`) ouvre l'IP du runner avant `terraform init`
+et la referme dans une étape `if: always()`. Les ressources sont trouvées par
+tag `owner`. L'IP est passée à Terraform par `TF_VAR_deployer_ip`, ce qui
+remplace l'ancien `data.http.deployer_ip` qui inscrivait durablement une IP
+éphémère de runner dans les `ip_rules`.
+
 Aucun `ignore_changes` n'est posé sur les `ip_rules`. L'ouverture étant
 refermée à la fin du job, l'état au repos correspond exactement à ce que
 Terraform décrit, et il n'y a pas de dérive à absorber.
@@ -35,7 +42,7 @@ explicitement cet usage. La liste publiée compte des milliers de blocs CIDR,
 Des runners sortant d'IP hors des plages publiées ont par ailleurs été
 constatés.
 
-**Passer `default_action` à `Allow`.** Fait échouer le scan tfsec exigé en CI,
+**Passer `default_action` à `Allow`.** Fait échouer le scan IaC exigé en CI (Trivy),
 qui vérifie que la network ACL du Key Vault est bien en `Deny`, et vide l'ADR
 0001 de sa substance.
 

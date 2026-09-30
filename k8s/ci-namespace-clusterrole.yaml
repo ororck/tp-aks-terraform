@@ -1,0 +1,27 @@
+# ADR 0006. À appliquer par un administrateur du cluster, jamais par la CI.
+# <CI_PRINCIPAL_ID> : ObjectId du service principal de la CI (sortie de oidc.sh).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: mohamed-saidi-namespace-manager
+rules:
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    resourceNames: ["mohamed-saidi"]
+    verbs: ["get", "list", "watch", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: mohamed-saidi-namespace-manager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: mohamed-saidi-namespace-manager
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: User
+    name: <CI_PRINCIPAL_ID>
