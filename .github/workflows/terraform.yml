@@ -38,13 +38,36 @@ jobs:
         run: terraform validate
 
       # tfsec n'est plus maintenu, Trivy a repris ses checks (mêmes AVD-...).
-      - name: Scan IaC (Trivy)
+      # HIGH et CRITICAL bloquent (exit 1). MEDIUM est informatif : ce sont
+      # des compromis non-prod assumés (accès public PostgreSQL filtré par
+      # firewall, ADR 0001), listés dans le résumé du job sans bloquer.
+      - name: Scan IaC bloquant (Trivy, HIGH et CRITICAL)
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: config
           scan-ref: .
-          severity: MEDIUM,HIGH,CRITICAL
+          severity: HIGH,CRITICAL
           exit-code: "1"
+
+      - name: Scan IaC informatif (Trivy, MEDIUM)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: config
+          scan-ref: .
+          severity: MEDIUM
+          exit-code: "0"
+          format: table
+          output: trivy-medium.txt
+
+      - name: Résumé Trivy
+        if: always()
+        run: |
+          {
+            echo '### Trivy MEDIUM (informatif)'
+            echo '```'
+            cat trivy-medium.txt 2>/dev/null || echo 'aucun résultat'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Détection de secrets (gitleaks)
         run: |
