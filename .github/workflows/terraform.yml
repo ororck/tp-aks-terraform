@@ -12,6 +12,8 @@ permissions:
   contents: read
 
 env:
+  RG_NAME: msaidiRG
+  OWNER_TAG: mohamed-saidi
   ARM_USE_OIDC: "true"
   ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
   ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
@@ -35,8 +37,14 @@ jobs:
       - name: Validate
         run: terraform validate
 
-      - name: Scan IaC (tfsec)
-        uses: aquasecurity/tfsec-action@v1.0.3
+      # tfsec n'est plus maintenu, Trivy a repris ses checks (mêmes AVD-...).
+      - name: Scan IaC (Trivy)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: config
+          scan-ref: .
+          severity: MEDIUM,HIGH,CRITICAL
+          exit-code: "1"
 
       - name: Détection de secrets (gitleaks)
         run: |
@@ -65,10 +73,26 @@ jobs:
           curl -sSLO https://github.com/Azure/kubelogin/releases/latest/download/kubelogin-linux-amd64.zip
           unzip -q kubelogin-linux-amd64.zip
           sudo mv bin/linux_amd64/kubelogin /usr/local/bin/
+      # Le Key Vault et le storage sont fermés par défaut : on ouvre le firewall
+      # à l'IP du runner avant terraform init (ADR 0004).
+      - name: Ouvrir les firewalls (JIT)
+        uses: ./.github/actions/jit-firewall
+        with:
+          mode: open
+          resource-group: ${{ env.RG_NAME }}
+          owner: ${{ env.OWNER_TAG }}
       - run: terraform init
       - run: terraform plan
         env:
           TF_VAR_ci_principal_id: ${{ secrets.TF_VAR_ci_principal_id }}
+
+      - name: Fermer les firewalls
+        if: always()
+        uses: ./.github/actions/jit-firewall
+        with:
+          mode: close
+          resource-group: ${{ env.RG_NAME }}
+          owner: ${{ env.OWNER_TAG }}
 
   # --- Apply : seulement si checks et plan sont passés ------------------------
   apply:
@@ -90,7 +114,23 @@ jobs:
           curl -sSLO https://github.com/Azure/kubelogin/releases/latest/download/kubelogin-linux-amd64.zip
           unzip -q kubelogin-linux-amd64.zip
           sudo mv bin/linux_amd64/kubelogin /usr/local/bin/
+      # Le Key Vault et le storage sont fermés par défaut : on ouvre le firewall
+      # à l'IP du runner avant terraform init (ADR 0004).
+      - name: Ouvrir les firewalls (JIT)
+        uses: ./.github/actions/jit-firewall
+        with:
+          mode: open
+          resource-group: ${{ env.RG_NAME }}
+          owner: ${{ env.OWNER_TAG }}
       - run: terraform init
       - run: terraform apply -auto-approve
         env:
           TF_VAR_ci_principal_id: ${{ secrets.TF_VAR_ci_principal_id }}
+
+      - name: Fermer les firewalls
+        if: always()
+        uses: ./.github/actions/jit-firewall
+        with:
+          mode: close
+          resource-group: ${{ env.RG_NAME }}
+          owner: ${{ env.OWNER_TAG }}
