@@ -32,3 +32,13 @@ output "acr_login_server" {
   description = "Serveur de connexion de l'ACR (la CI le retrouve aussi par tags)."
   value       = module.acr.login_server
 }
+
+output "ingress_ip" {
+  description = "IP d'entrée de l'ingress managé, résolue dynamiquement."
+  value       = local.ingress_ip
+}
+
+output "ingress_host" {
+  description = "Hôte public nip.io construit depuis ingress_ip."
+  value       = local.ingress_host
+}

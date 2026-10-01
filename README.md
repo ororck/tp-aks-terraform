@@ -18,7 +18,7 @@ référence en `data` et ne gère que les ressources propres à l'environnement.
 Internet
    |
    v
-Ingress managé (app-routing-system, 20.74.93.53)   [FOURNI]
+Ingress managé (app-routing-system, IP résolue dynamiquement)   [FOURNI]
    |
    v
 [ namespace mohamed-saidi ]        [CRÉÉ ICI]
