@@ -20,4 +20,8 @@ locals {
     for ip in data.azurerm_public_ips.cluster.public_ips :
     ip.ip_address if !startswith(ip.name, "kubernetes-")
   ][0]
+
+  # URL publique : nip.io résout <host>.<ip>.nip.io vers <ip>.
+  ingress_ip   = data.azurerm_public_ip.ingress.ip_address
+  ingress_host = "${var.owner}.${local.ingress_ip}.nip.io"
 }

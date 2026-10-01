@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # Smoke test rejouable : le front répond, /api/ traverse nginx jusqu'au backend
 # et la réponse vient de PostgreSQL (liste des certifications).
-# Lecture seule (GET uniquement). Usage :
-#   SMOKE_API_KEY=<clé> ./scripts/smoke-test.sh [base_url]
+# Lecture seule (GET uniquement). L'URL vient de `terraform output -raw ingress_host`,
+# préfixée de http://. Usage :
+#   SMOKE_API_KEY=<clé> ./scripts/smoke-test.sh <base_url>
 set -euo pipefail
 
-BASE_URL="${1:-${SMOKE_BASE_URL:-http://mohamed-saidi.20.74.93.53.nip.io}}"
+BASE_URL="${1:-${SMOKE_BASE_URL:?base URL requise : argument ou SMOKE_BASE_URL (terraform output -raw ingress_host)}}"
 API_KEY="${SMOKE_API_KEY:?SMOKE_API_KEY requis (clé attendue par le backend, en-tête X-Api-Key)}"
 fail=0
 

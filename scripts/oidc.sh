@@ -53,6 +53,12 @@ assign "Contributor" "$RG_SCOPE"
 assign "Role Based Access Control Administrator" "$RG_SCOPE"
 # Contributor / Key Vault Contributor ne peuvent pas purger un vault (notActions).
 assign "Key Vault Purge Operator" "$RG_SCOPE"
+# State Terraform lu et écrit en Entra ID (use_azuread_auth) : rôle data-plane
+# limité au seul storage account du state, retrouvé par tag.
+STATE_SA_ID=$(az storage account list -g "$RG_NAME" \
+  --query "[?tags.owner=='mohamed-saidi' && tags.component=='tfstate'].id | [0]" -o tsv)
+[ -n "$STATE_SA_ID" ] || { echo "storage du state introuvable : lancer storage-container.sh" >&2; exit 1; }
+assign "Storage Blob Data Contributor" "$STATE_SA_ID"
 # Cluster mutualisé : lecture seule, aucune modification.
 assign "Reader" "$AKS_SCOPE"
 assign "Reader" "$NODE_RG_SCOPE"
