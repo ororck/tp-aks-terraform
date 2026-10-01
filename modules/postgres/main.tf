@@ -5,13 +5,6 @@ resource "random_password" "admin" {
   override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
-# IP publique de l'exécutant Terraform, autorisée le temps de créer/gérer la
-# base (sinon le firewall PostgreSQL bloque aussi l'exécutant, pas seulement
-# le trafic externe).
-data "http" "deployer_ip" {
-  url = "https://api.ipify.org"
-}
-
 resource "azurerm_postgresql_flexible_server" "this" {
   name                = "psql-${var.owner}"
   location            = var.location
@@ -46,12 +39,15 @@ resource "azurerm_postgresql_flexible_server_firewall_rule" "cluster" {
   end_ip_address   = var.cluster_egress_ip
 }
 
-# Firewall : IP de l'exécutant Terraform (création de la base, gestion).
+# Firewall : IP de l'exécutant Terraform (création de la base, gestion). L'IP
+# vient de var.deployer_ip, fournie par la CI : aucun appel externe pendant le
+# plan, et aucune règle en local si la variable est vide.
 resource "azurerm_postgresql_flexible_server_firewall_rule" "deployer" {
+  count            = var.deployer_ip == "" ? 0 : 1
   name             = "allow-deployer"
   server_id        = azurerm_postgresql_flexible_server.this.id
-  start_ip_address = chomp(data.http.deployer_ip.response_body)
-  end_ip_address   = chomp(data.http.deployer_ip.response_body)
+  start_ip_address = var.deployer_ip
+  end_ip_address   = var.deployer_ip
 }
 
 # Base applicative.

@@ -10,7 +10,7 @@ resource "azurerm_storage_account" "this" {
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
 
-  # Accessible uniquement depuis le backend (IP du cluster).
+  # Accessible uniquement depuis le backend (subnet et IP du cluster).
   # L'IP de l'exécutant est ajoutée pour créer le container. bypass est une
   # LISTE ici (différent du Key Vault). ip_rules attend des IP nues (pas /32). L'IP de
   # l'exécutant vient de var.deployer_ip, fournie par la CI.
@@ -18,6 +18,9 @@ resource "azurerm_storage_account" "this" {
     default_action = "Deny"
     bypass         = ["AzureServices"]
     ip_rules       = compact([var.cluster_egress_ip, var.deployer_ip])
+    # Le cluster et le storage sont dans la même région : les règles IP ne
+    # s'appliquent pas à ce trafic, d'où la règle de réseau virtuel (ADR 0008).
+    virtual_network_subnet_ids = [var.aks_subnet_id]
   }
 
   tags = merge(var.tags, { component = "storage" })

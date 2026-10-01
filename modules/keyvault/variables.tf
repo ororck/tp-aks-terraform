@@ -10,3 +10,4 @@ variable "deployer_ip" {
   type    = string
   default = ""
 }
+variable "aks_subnet_id" { type = string }

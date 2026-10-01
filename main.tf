@@ -15,6 +15,7 @@ module "keyvault" {
   deployer_principal_id = data.azurerm_client_config.current.object_id
   ci_principal_id       = var.ci_principal_id
   deployer_ip           = var.deployer_ip
+  aks_subnet_id         = data.azurerm_subnet.aks.id
   tags                  = local.common_tags
 }
 
@@ -30,6 +31,7 @@ module "postgres" {
   admin_login         = var.postgres_admin_login
   database_name       = var.postgres_database_name
   cluster_egress_ip   = local.cluster_egress_ip
+  deployer_ip         = var.deployer_ip
   key_vault_id        = module.keyvault.id
   depends_on          = [module.keyvault]
   tags                = local.common_tags
@@ -58,6 +60,7 @@ module "storage" {
   cluster_egress_ip   = local.cluster_egress_ip
   ci_principal_id     = var.ci_principal_id
   deployer_ip         = var.deployer_ip
+  aks_subnet_id       = data.azurerm_subnet.aks.id
   tags                = local.common_tags
 }
 
