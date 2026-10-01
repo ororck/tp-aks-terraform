@@ -9,3 +9,7 @@ variable "database_name" { type = string }
 variable "cluster_egress_ip" { type = string }
 variable "key_vault_id" { type = string }
 variable "tags" { type = map(string) }
+variable "deployer_ip" {
+  type    = string
+  default = ""
+}

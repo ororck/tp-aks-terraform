@@ -23,6 +23,8 @@ resource "azurerm_key_vault" "this" {
     default_action = "Deny"
     bypass         = "None"
     ip_rules       = compact([var.cluster_egress_ip, var.deployer_ip])
+    # Même raison que pour le storage (ADR 0008).
+    virtual_network_subnet_ids = [var.aks_subnet_id]
   }
 
   tags = merge(var.tags, { component = "keyvault" })

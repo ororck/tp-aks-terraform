@@ -35,3 +35,17 @@ data "azurerm_public_ip" "ingress" {
   name                = data.azurerm_resources.ingress_ip.resources[0].name
   resource_group_name = data.azurerm_kubernetes_cluster.shared.node_resource_group
 }
+
+# VNet géré du cluster (node RG) et son subnet de nœuds, portant les service
+# endpoints Storage et Key Vault. Le nom du VNet est généré : on le retrouve
+# par type, le subnet par son nom.
+data "azurerm_resources" "aks_vnet" {
+  resource_group_name = data.azurerm_kubernetes_cluster.shared.node_resource_group
+  type                = "Microsoft.Network/virtualNetworks"
+}
+
+data "azurerm_subnet" "aks" {
+  name                 = "aks-subnet"
+  virtual_network_name = data.azurerm_resources.aks_vnet.resources[0].name
+  resource_group_name  = data.azurerm_kubernetes_cluster.shared.node_resource_group
+}
