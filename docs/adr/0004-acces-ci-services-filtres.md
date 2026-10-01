@@ -65,3 +65,8 @@ opérateur, le risque est accepté.
 Une propagation de quelques secondes existe entre l'ajout de la règle et sa
 prise en compte côté plan de données, d'où l'attente explicite dans le
 workflow avant le premier appel.
+
+## Mise à jour
+Les règles de réseau virtuel du subnet `aks-subnet` (ADR 0008) sont gérées par
+Terraform et ne sont jamais touchées par l'ouverture temporaire : seule l'IP
+éphémère du runner est ajoutée puis retirée.
