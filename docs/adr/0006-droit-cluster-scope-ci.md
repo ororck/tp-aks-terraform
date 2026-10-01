@@ -33,7 +33,15 @@ Si l'application du ClusterRole reste bloquée après une tentative sérieuse, l
 repli est `AKS RBAC Cluster Admin` sur le cluster. Ce compromis sera consigné
 ici avec la date et la raison si nous devons l'utiliser.
 
+## Complément : droits dans le namespace
+
+Le ClusterRole ne couvre que l'objet namespace. Une fois celui-ci créé, la CI
+reçoit un 403 sur les objets qu'il contient (NetworkPolicies, puis les
+ressources des pipelines de déploiement). Un Role et un RoleBinding limités au
+namespace `mohamed-saidi` (`k8s/ci-namespace-role.yaml`) comblent ce manque,
+sans élargir les droits aux autres namespaces. Application par un
+administrateur du cluster.
+
 ## Statut
 
-Manifest écrit, non appliqué : le rôle et sa liaison restent à demander à un
-administrateur du cluster.
+ClusterRole appliqué par un administrateur. Role de namespace écrit, à appliquer.
