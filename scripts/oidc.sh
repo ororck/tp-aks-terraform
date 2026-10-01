@@ -64,6 +64,15 @@ assign "Reader" "$AKS_SCOPE"
 assign "Reader" "$NODE_RG_SCOPE"
 assign "Azure Kubernetes Service Cluster User Role" "$AKS_SCOPE"
 
+# Règles de réseau virtuel (service endpoints) du storage et du Key Vault :
+# les règles IP ne s'appliquent pas au trafic de la même région que le storage.
+# La CI doit pouvoir joindre aks-subnet (joinViaServiceEndpoint). Network
+# Contributor est le built-in qui porte cette action, attribué sur ce seul
+# subnet (VNet géré du node RG), jamais sur le VNet ni le node RG. Voir ADR 0008.
+SUBNET_VNET=$(az network vnet list -g "$NODE_RG" --query "[0].name" -o tsv)
+SUBNET_SCOPE="${NODE_RG_SCOPE}/providers/Microsoft.Network/virtualNetworks/${SUBNET_VNET}/subnets/aks-subnet"
+assign "Network Contributor" "$SUBNET_SCOPE"
+
 # Federated credentials : main (deploiement) et pull_request (checks).
 OWNER_ID=$(gh api "users/${GH_ORG}" -q .id)
 for REPO in "${GH_REPOS[@]}"; do
