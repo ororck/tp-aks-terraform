@@ -1,0 +1,32 @@
+# Droits de la CI à l'intérieur du namespace mohamed-saidi uniquement.
+# À appliquer par un administrateur du cluster (voir ADR 0006).
+# Remplacer <CI_PRINCIPAL_ID> par l'objectId de l'identité de la CI.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ci-namespace-editor
+  namespace: mohamed-saidi
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "services", "configmaps", "secrets", "serviceaccounts"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["networkpolicies", "ingresses"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ci-namespace-editor
+  namespace: mohamed-saidi
+subjects:
+  - kind: User
+    name: <CI_PRINCIPAL_ID>
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: ci-namespace-editor
+  apiGroup: rbac.authorization.k8s.io
